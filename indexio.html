@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up & Run X Highlighter</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+    .hidden { display: none; }
+    input, button { padding: 10px; margin: 10px; }
+    .success { color: green; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>Sign Up to Access the X Highlighter</h2>
+  <input type="email" id="email" placeholder="Enter your email">
+  <button onclick="signUp()">Sign Up</button>
+  
+  <p id="userIdDisplay" class="hidden">
+    Your User ID: <span id="userId"></span>
+  </p>
+  
+  <h2>Enter Your User ID to Run the Tool</h2>
+  <input type="text" id="verifyUserId" placeholder="Enter your User ID">
+  <button onclick="verifyUser()">Verify</button>
+  
+  <p id="accessGranted" class="hidden success">✅ Access Granted! Click below to run the tool.</p>
+  <button id="runTool" class="hidden" onclick="runTool()">Run X Highlighter</button>
+
+  <script>
+    const webhookURL = "https://hook.eu2.make.com/6ytrrtr6hapea8k6ek2s5ypiynjoavtd";
+    let generatedUserId = "";
+
+    // Load stored User ID on page load
+    window.onload = function() {
+      const savedId = localStorage.getItem("userId");
+      if (savedId) {
+        document.getElementById("verifyUserId").value = savedId;
+      }
+    };
+
+    function signUp() {
+      const email = document.getElementById("email").value;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alert("Please enter a valid email address!");
+        return;
+      }
+
+      // Generate a unique user ID
+      generatedUserId = "X-" + Math.random().toString(36).substr(2, 8).toUpperCase();
+
+      // Save to local storage
+      localStorage.setItem("userId", generatedUserId);
+
+      // Send data to Make.com webhook
+      fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, userId: generatedUserId })
+      }).then(response => {
+        if (response.ok) {
+          document.getElementById("userId").innerText = generatedUserId;
+          document.getElementById("userIdDisplay").classList.remove("hidden");
+
+          // Auto-fill User ID in the verification field
+          document.getElementById("verifyUserId").value = generatedUserId;
+
+          alert("Sign-up successful! Your User ID has been generated.");
+        } else {
+          alert("Error sending data. Try again.");
+        }
+      });
+    }
+
+    function verifyUser() {
+      const inputId = document.getElementById("verifyUserId").value;
+
+      if (!inputId) {
+        alert("First input a User ID.");
+        return;
+      }
+
+      if (inputId === generatedUserId || inputId === localStorage.getItem("userId")) {
+        document.getElementById("accessGranted").classList.remove("hidden");
+        document.getElementById("runTool").classList.remove("hidden");
+      } else {
+        alert("Invalid User ID. Please enter the correct ID.");
+      }
+    }
+
+    function runTool() {
+      window.open("https://x.com/following", "_blank");
+
+      setTimeout(() => {
+        const script = document.createElement("script");
+        script.src = "https://numerosai.com/highlight.js"; 
+        script.async = true;
+        document.body.appendChild(script);
+      }, 3000);
+    }
+  </script>
+
+</body>
+</html>
